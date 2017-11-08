@@ -8,6 +8,19 @@ const defaultRound = {
   currentRoundGoingUp: true
 };
 
+// http://pietschsoft.com/post/2008/01/14/JavaScript-intTryParse-Equivalent
+function TryParseInt(str,defaultValue) {
+     var retValue = defaultValue;
+     if(str !== null) {
+         if(str.length > 0) {
+             if (!isNaN(str)) {
+                 retValue = parseInt(str, 10);
+             }
+         }
+     }
+     return retValue;
+}
+
 export const currentRound = (state = defaultRound,) => ( state );
 
 export const players = (state = []) => { return state; };
@@ -26,7 +39,7 @@ const setRoundValue = (state, newValue, roundNumber, roundId, playerId) => {
     ...state,
     [roundId]: {
       ...state[roundId],
-      [playerId]: parseInt(newValue, 10)
+      [playerId]: TryParseInt(newValue, 0) // TODO: Set some validation here to raise exceptions or do nothing if its not an int maybe
     },
   };
 }
