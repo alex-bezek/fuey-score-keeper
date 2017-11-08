@@ -1,5 +1,8 @@
 # Fuey Score Keeper
 
+# TODO
+* Without the amount of pure functions in this code, it would be actually super helpful for dev to figure out unit tests setup
+
 ##### The Core Rules
 * How many rounds
   * 52 cards in a deck. So the number of rounds is dictated by the number of players

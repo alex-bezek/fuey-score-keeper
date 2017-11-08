@@ -14,15 +14,27 @@ const propTypes = {
   currentPhase: PropTypes.string.isRequired,
 };
 
+// maxRoundCount = 4
+//   round = 2 : returns 3
+//
+// maxRoundCount = 4
+//   round = 3 : returns 4
+//
+// maxRoundCount = 4
+//   round = 4 : returns 4
+//
+// maxRoundCount = 4
+//   round = 5 : returns 3
 // in this case, round is 0 indexed as if from a map index
 const calculateLogicalRound = (round, maxRoundCount) => {
-  return (round + 1 < maxRoundCount) ?
+   const x = (round + 1 <= maxRoundCount) ?
   (round + 1)
   :
   // Add 1 for the extra round spent at maxRoundCount (2 rounds at 10, 1 going up, 1 going down)
   // Add 1 since round is 0 indexed as its the map index, but maxRoundCount and round calculations are 1 indexed
   // ???
-  (round + 1 - maxRoundCount + 1 + 1);
+  (maxRoundCount + maxRoundCount - round);
+  return x;
 }
 
 const GameBoard = (props) => {
@@ -60,7 +72,7 @@ const GameBoard = (props) => {
              const logicalRound = calculateLogicalRound(round, maxRoundCount);
              return(
                <Round
-                 key={'round_' + logicalRound}
+                 key={'round_' + round}
                  playerIds={playerIds}
                  roundId={round}
                  roundNumber={logicalRound}
