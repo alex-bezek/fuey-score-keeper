@@ -9,6 +9,7 @@ const mapStateToProps = (state, ownProps) => {
     currentPhase: state.currentPhase,
     bid: state.roundBids[roundNumber] && state.roundBids[roundNumber][playerId],
     tricksTaken: state.roundTricksTaken[roundNumber] && state.roundTricksTaken[roundNumber][playerId],
+    score: state.roundScores[roundNumber] && state.roundScores[roundNumber][playerId],
   }
 }
 

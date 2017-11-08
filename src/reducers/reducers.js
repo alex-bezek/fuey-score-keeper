@@ -1,4 +1,4 @@
-import { combineReducers, reduceReducers } from 'redux';
+import { combineReducers } from 'redux';
 import { SET_BID, ADVANCE_PHASE, SET_TRICKS_TAKEN } from '../actions/types';
 import { PHASE_TYPES } from '../constants';
 
@@ -11,9 +11,11 @@ export const currentRound = (state = defaultRound,) => ( state );
 
 export const players = (state = []) => { return state; };
 export const roundGoingUp = (state = true) => { return state; };
+export const roundScores = (state = {}) => { return state; };
 // Just used for default state
 export const currentPhase = (state = PHASE_TYPES.bidding, action) => { return state; };
 
+// Useful for setting a single value in the nested value of a round for a player.
 const setRoundValue = (state, newValue, roundNumber, playerId) => {
   if(newValue > roundNumber) {
     return state; // TODO: do some async thunk stuff to set a value in store and show a warning message
@@ -25,6 +27,16 @@ const setRoundValue = (state, newValue, roundNumber, playerId) => {
       [playerId]: parseInt(newValue, 10)
     },
   };
+}
+
+// To set a whole round of values, its much simpler since we can clobber more state.
+// this provides just a simpler interface to set the whole round. Its assuming new
+// values already match the shape of the tree (object in our cases)
+const setRoundValues = (state, newValues, roundNumber) => {
+  return {
+    ...state,
+    [roundNumber]: newValues
+  }
 }
 
 export const roundBids = (state = {}, action) => {
@@ -80,6 +92,46 @@ const isBiddingDone = (thisRoundsBids, roundNumber, playerIds) => {
   return true;
 }
 
+const calculateSingleScore = ( previousRoundScore, thisRoundBid, thisRoundTrickTaken) => {
+  // TODO: Throw some things if some things are null
+  const safePreviousRoundScore = previousRoundScore || 0; // Set to 0 if undefined for first round's calculations
+
+  // They bid fuey
+  if(thisRoundBid === 0){
+    // And got it so they get 5 points
+    if(thisRoundBid === thisRoundTrickTaken){
+      return safePreviousRoundScore + 5;
+    } else { // They didn't get fuey but their score stays the same
+      return safePreviousRoundScore;
+    }
+  } else { // They bid non fuey
+    // And got it so give them 10 plus what they thisRoundBid
+    if(thisRoundBid === thisRoundTrickTaken){
+      return safePreviousRoundScore + 10 + thisRoundBid;
+    } else { // And failed so they lose points
+      return safePreviousRoundScore - thisRoundBid;
+    }
+  }
+}
+
+const calculateRoundScores = (previousRoundScores, thisRoundBids, thisRoundTricksTaken) => {
+  if(Object.keys(thisRoundBids).length !== Object.keys(thisRoundTricksTaken).length) {
+    console.log(`
+      previousRoundScores: ${previousRoundScores}
+      thisRoundBids: ${thisRoundBids}
+      thisRoundTricksTaken: ${thisRoundTricksTaken}
+    `);
+    throw 'thisRoundBids and thisRoundTricksTaken should be the same size';
+  }
+  // Returns an object of the values coming back from the function called
+  let newRoundScores = {};
+  Object.keys(thisRoundBids).forEach (playerId => {
+    const previousPlayersRoundScore = previousRoundScores && previousRoundScores[playerId]; // Saftey check for undefined
+    newRoundScores[playerId] = calculateSingleScore(previousPlayersRoundScore, thisRoundBids[playerId], thisRoundTricksTaken[playerId])
+  })
+  return newRoundScores;
+}
+
 // Reducers that have to do logic based off the whole tree can go here
 const crossSliceReducer = (state, action) => {
     switch(action.type) {
@@ -97,8 +149,17 @@ const crossSliceReducer = (state, action) => {
                 currentRoundNumber: state.currentRound.currentRoundNumber + 1,
                 "currentRoundGoingUp": true, // TODO: Make this change based on the round
               },
-              currentPhase: PHASE_TYPES.bidding
+              currentPhase: PHASE_TYPES.bidding,
+              roundScores: {
+                ...state.roundScores,
+                [state.currentRound.currentRoundNumber]: calculateRoundScores(
+                  state.roundScores && state.roundScores[state.currentRound.currentRoundNumber - 1],
+                  state.roundBids[state.currentRound.currentRoundNumber],  // TODO: This is getting cray cray, make some variables for gods sake
+                  state.roundTricksTaken[state.currentRound.currentRoundNumber]
+                )
+              }
             }
+
           }
         }
 
@@ -113,6 +174,7 @@ const combinedReducer = combineReducers({
   currentPhase,
   roundBids,
   roundTricksTaken,
+  roundScores,
 })
 
 

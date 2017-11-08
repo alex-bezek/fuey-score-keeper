@@ -1,5 +1,4 @@
 import * as types from './types';
-import { PHASE_TYPES } from '../constants';
 
 export const advancePhase = () => {
   return {
