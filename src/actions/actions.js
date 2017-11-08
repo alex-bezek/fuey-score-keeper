@@ -6,16 +6,18 @@ export const advancePhase = () => {
   }
 };
 
-export const setBid = (bid, roundNumber, playerId) =>({
+export const setBid = (bid, roundNumber, roundId, playerId) =>({
   type: types.SET_BID,
   bid: bid,
   roundNumber: roundNumber,
+  roundId: roundId,
   playerId: playerId
 });
 
-export const setTricksTaken = (tricksTaken, roundNumber, playerId) =>({
+export const setTricksTaken = (tricksTaken, roundNumber, roundId, playerId) =>({
   type: types.SET_TRICKS_TAKEN,
   tricksTaken: tricksTaken,
   roundNumber: roundNumber,
+  roundId: roundId,
   playerId: playerId
 });

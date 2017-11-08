@@ -17,6 +17,7 @@ const initialState = {
       "name": "dale"
     },
   ],
+  "maxRoundCount": 2,
 };
 
 export default initialState;

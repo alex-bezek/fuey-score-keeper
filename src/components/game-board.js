@@ -14,25 +14,35 @@ const propTypes = {
   currentPhase: PropTypes.string.isRequired,
 };
 
+// in this case, round is 0 indexed as if from a map index
+const calculateLogicalRound = (round, maxRoundCount) => {
+  return (round + 1 < maxRoundCount) ?
+  (round + 1)
+  :
+  // Add 1 for the extra round spent at maxRoundCount (2 rounds at 10, 1 going up, 1 going down)
+  // Add 1 since round is 0 indexed as its the map index, but maxRoundCount and round calculations are 1 indexed
+  // ???
+  (round + 1 - maxRoundCount + 1 + 1);
+}
+
 const GameBoard = (props) => {
   const {
     currentRoundNumber,
+    currentRoundId,
     onNextRoundClick,
     players,
     currentRoundGoingUp,
-    currentPhase
+    currentPhase,
+    maxRoundCount,
   } = props;
 
   const playerIds = players.map(player => player.id);
-  // 52 cards in a deck. So the number of rounds is dictated by the number of players
-  // By default we also only allow up to 10 rounds
-  // Logical Round Count where 7 means we play up to 7 and back down
-  const maxLogicalRoundCount = Math.min(10, Math.floor(52/players.length));
+  const goingUpWord = currentRoundGoingUp ? 'Up' : 'Down';
 
   return (
     <div>
       <h2>
-        { `Round ${currentRoundNumber}` }
+        { `Round ${currentRoundNumber} of ${maxRoundCount} Going ${goingUpWord}` }
       </h2>
      <table>
        <tbody>
@@ -45,14 +55,16 @@ const GameBoard = (props) => {
            }
          </tr>
          {
-           // Round Number is 1 indexed
-           [...Array(currentRoundNumber).keys()].map((round) => {
-             const logicalRound = currentRoundGoingUp ? (round + 1) : (round + 1 - maxLogicalRoundCount);
+           // currentRoundNumber and maxRoundCount is 1 indexed
+           [...Array(currentRoundGoingUp ? currentRoundNumber : (maxRoundCount + maxRoundCount - currentRoundNumber + 1)).keys()].map((round) => {
+             const logicalRound = calculateLogicalRound(round, maxRoundCount);
              return(
                <Round
                  key={'round_' + logicalRound}
                  playerIds={playerIds}
+                 roundId={round}
                  roundNumber={logicalRound}
+
                />
              );
            })

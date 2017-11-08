@@ -11,6 +11,7 @@
 #### Redux Store
 ```js
 {
+  "maxRoundCount": 10,
   "currentRound": {
     "currentRoundNumber": 1,
     "currentRoundGoingUp": true,

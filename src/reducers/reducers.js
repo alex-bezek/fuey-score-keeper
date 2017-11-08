@@ -4,26 +4,28 @@ import { PHASE_TYPES } from '../constants';
 
 const defaultRound = {
   currentRoundNumber: 1,
+  currentRoundId: 0,
   currentRoundGoingUp: true
 };
 
 export const currentRound = (state = defaultRound,) => ( state );
 
 export const players = (state = []) => { return state; };
+export const maxRoundCount = (state = 10) => { return state; };
 export const roundGoingUp = (state = true) => { return state; };
 export const roundScores = (state = {}) => { return state; };
 // Just used for default state
 export const currentPhase = (state = PHASE_TYPES.bidding, action) => { return state; };
 
 // Useful for setting a single value in the nested value of a round for a player.
-const setRoundValue = (state, newValue, roundNumber, playerId) => {
-  if(newValue > roundNumber) {
+const setRoundValue = (state, newValue, roundNumber, roundId, playerId) => {
+  if(newValue > roundNumber) { // TODO: newValue is coming back as a string, but roundNumber is int. Check if that causes issues
     return state; // TODO: do some async thunk stuff to set a value in store and show a warning message
   }
   return {
     ...state,
-    [roundNumber]: {
-      ...state[roundNumber],
+    [roundId]: {
+      ...state[roundId],
       [playerId]: parseInt(newValue, 10)
     },
   };
@@ -42,7 +44,7 @@ const setRoundValues = (state, newValues, roundNumber) => {
 export const roundBids = (state = {}, action) => {
   switch (action.type) {
     case SET_BID:
-      return setRoundValue(state, action.bid, action.roundNumber, action.playerId);
+      return setRoundValue(state, action.bid, action.roundNumber, action.roundId, action.playerId);
     default:
       return state;
   }
@@ -51,7 +53,7 @@ export const roundBids = (state = {}, action) => {
 export const roundTricksTaken = (state = {}, action) => {
   switch (action.type) {
     case SET_TRICKS_TAKEN:
-      return setRoundValue(state, action.tricksTaken, action.roundNumber, action.playerId);
+      return setRoundValue(state, action.tricksTaken, action.roundNumber, action.roundId, action.playerId);
     default:
       return state;
   }
@@ -132,30 +134,54 @@ const calculateRoundScores = (previousRoundScores, thisRoundBids, thisRoundTrick
   return newRoundScores;
 }
 
+const calculateNextRound = (currentRound, maxRoundCount, currentRoundId) => {
+  // If we are on our last round, and we are going up, then lets go down after. All other cases stay the same
+  let nextRoundGoingUp = currentRound.currentRoundGoingUp;
+  let nextRoundNumber = currentRound.currentRoundNumber;
+
+  if(currentRound.currentRoundNumber === maxRoundCount) {
+      if(currentRound.currentRoundGoingUp) {
+        nextRoundGoingUp = false;
+      } else {
+        nextRoundNumber = currentRound.currentRoundNumber - 1
+      }
+  } else {
+    if(currentRound.currentRoundGoingUp) {
+      nextRoundNumber = currentRound.currentRoundNumber + 1
+    } else {
+      nextRoundNumber = currentRound.currentRoundNumber - 1
+    }
+  }
+
+  return {
+    currentRoundNumber: nextRoundNumber ,
+    "currentRoundGoingUp": nextRoundGoingUp,
+    "currentRoundId": currentRoundId + 1,
+  }
+}
+
 // Reducers that have to do logic based off the whole tree can go here
 const crossSliceReducer = (state, action) => {
     switch(action.type) {
       case ADVANCE_PHASE:
         if(state.currentPhase === PHASE_TYPES.bidding) {
           // If bidding is done, flip the phase to taking. Otherwise leave it. TODO: Would be to show an error
-          if(isBiddingDone(state.roundBids[state.currentRound.currentRoundNumber], state.currentRound.currentRoundNumber, state.players.map(player => (player.id)))){
+          if(isBiddingDone(state.roundBids[state.currentRound.currentRoundId], state.currentRound.currentRoundId, state.players.map(player => (player.id)))){
             return { ...state, currentPhase: PHASE_TYPES.taking }
           }
         } else {
-          if(doesRoundContainEntriesFromAllPlayers(state.roundTricksTaken[state.currentRound.currentRoundNumber], state.players.map(player => (player.id)))){
+          // TODO: Check if its the last round and do something
+          if(doesRoundContainEntriesFromAllPlayers(state.roundTricksTaken[state.currentRound.currentRoundId], state.players.map(player => (player.id)))){
             return {
               ...state,
-              currentRound: {
-                currentRoundNumber: state.currentRound.currentRoundNumber + 1,
-                "currentRoundGoingUp": true, // TODO: Make this change based on the round
-              },
+              currentRound: calculateNextRound(state.currentRound, state.maxRoundCount, state.currentRound.currentRoundId),
               currentPhase: PHASE_TYPES.bidding,
               roundScores: {
                 ...state.roundScores,
-                [state.currentRound.currentRoundNumber]: calculateRoundScores(
-                  state.roundScores && state.roundScores[state.currentRound.currentRoundNumber - 1],
-                  state.roundBids[state.currentRound.currentRoundNumber],  // TODO: This is getting cray cray, make some variables for gods sake
-                  state.roundTricksTaken[state.currentRound.currentRoundNumber]
+                [state.currentRound.currentRoundId]: calculateRoundScores(
+                  state.roundScores && state.roundScores[state.currentRound.currentRoundId - 1],
+                  state.roundBids[state.currentRound.currentRoundId],  // TODO: This is getting cray cray, make some variables for gods sake
+                  state.roundTricksTaken[state.currentRound.currentRoundId]
                 )
               }
             }
@@ -175,6 +201,7 @@ const combinedReducer = combineReducers({
   roundBids,
   roundTricksTaken,
   roundScores,
+  maxRoundCount,
 })
 
 

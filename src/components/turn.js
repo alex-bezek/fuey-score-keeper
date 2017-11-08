@@ -4,6 +4,7 @@ import { PHASE_TYPES } from '../constants';
 
 const propTypes = {
   roundNumber: PropTypes.number.isRequired,
+  roundId: PropTypes.number.isRequired,
   playerId: PropTypes.number.isRequired,
 
   isCurrentRound: PropTypes.bool.isRequired,
@@ -42,7 +43,7 @@ const Turn = (props) => {
           type="number"
           name="bid"
           min="0"
-          disabled={isCurrentRound && currentPhase !== PHASE_TYPES.bidding}
+          disabled={!isCurrentRound || currentPhase !== PHASE_TYPES.bidding}
           max={roundNumber}
           value={presentValue(bid)}
           onChange={(event) => onBidChange(event.target.value)}
@@ -53,7 +54,7 @@ const Turn = (props) => {
           type="number"
           name="taken"
           min="0"
-          disabled={isCurrentRound && currentPhase !== PHASE_TYPES.taking}
+          disabled={!isCurrentRound || currentPhase !== PHASE_TYPES.taking}
           max={roundNumber}
           value={presentValue(tricksTaken)}
           onChange={(event) => onTricksTakenChange(event.target.value)}

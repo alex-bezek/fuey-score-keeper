@@ -3,23 +3,23 @@ import { setBid, setTricksTaken } from '../actions/actions';
 import Turn from '../components/turn';
 
 const mapStateToProps = (state, ownProps) => {
-  const { roundNumber, playerId } = ownProps;
+  const { roundNumber, playerId, roundId } = ownProps;
   return {
-    isCurrentRound: state.currentRound.currentRoundNumber === roundNumber,
+    isCurrentRound: state.currentRound.currentRoundId === roundId,
     currentPhase: state.currentPhase,
-    bid: state.roundBids[roundNumber] && state.roundBids[roundNumber][playerId],
-    tricksTaken: state.roundTricksTaken[roundNumber] && state.roundTricksTaken[roundNumber][playerId],
-    score: state.roundScores[roundNumber] && state.roundScores[roundNumber][playerId],
+    bid: state.roundBids[roundId] && state.roundBids[roundId][playerId],
+    tricksTaken: state.roundTricksTaken[roundId] && state.roundTricksTaken[roundId][playerId],
+    score: state.roundScores[roundId] && state.roundScores[roundId][playerId],
   }
 }
 
 const mapDispatchToProps = (dispatch, ownProps) => {
   return {
     onBidChange: (bidAmount) => {
-      dispatch(setBid(bidAmount, ownProps.roundNumber, ownProps.playerId))
+      dispatch(setBid(bidAmount, ownProps.roundNumber, ownProps.roundId, ownProps.playerId))
     },
     onTricksTakenChange: (tricksTakenAmount) => {
-      dispatch(setTricksTaken(tricksTakenAmount, ownProps.roundNumber, ownProps.playerId))
+      dispatch(setTricksTaken(tricksTakenAmount, ownProps.roundNumber, ownProps.roundId, ownProps.playerId))
     }
   }
 }

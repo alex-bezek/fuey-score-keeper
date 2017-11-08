@@ -3,13 +3,14 @@ import PropTypes from 'prop-types';
 import TurnContainer from '../containers/turn';
 
 const propTypes = {
+  roundId: PropTypes.number.isRequired,
   roundNumber: PropTypes.number.isRequired,
   playerIds: PropTypes.arrayOf(PropTypes.number)
 };
 
 // React representation of a full round
 const Round = (props) => {
-  const { roundNumber, playerIds } = props;
+  const { roundId, roundNumber, playerIds } = props;
   return (
     <tr key={'round_tr_' + roundNumber}>
       <th>
@@ -20,6 +21,7 @@ const Round = (props) => {
           return(
             <TurnContainer
               key={'turn_' + playerId}
+              roundId={roundId}
               roundNumber={roundNumber}
               playerId={playerId}
             />
