@@ -40,7 +40,7 @@ const Turn = (props) => {
     <td>
       <div>
         <input
-          type="number"
+          type="tel"
           name="bid"
           min="0"
           disabled={!isCurrentRound || currentPhase !== PHASE_TYPES.bidding}
@@ -51,7 +51,7 @@ const Turn = (props) => {
       </div>
       <div>
         <input
-          type="number"
+          type="tel"
           name="taken"
           min="0"
           disabled={!isCurrentRound || currentPhase !== PHASE_TYPES.taking}
